@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Azure;
-using Azure.AI.OpenAI;
+﻿using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
@@ -89,10 +82,21 @@ namespace CosmosRecipeGuide
         {
 
             // Perform the vector similarity search  
-            var vector = new SearchQueryVector { K = 3, Fields = "embedding", Value = queryEmbeddings.ToArray() };
-            var searchOptions = new SearchOptions
+            //var vector = new SearchQueryVector { KNearestNeighborsCount = 3, Fields = "embedding", Value = queryEmbeddings.ToArray() };
+            var searchOptions = new SearchOptions()
             {
-                Vector = vector,
+                Vectors =
+                {
+                    new SearchQueryVector()
+                    {
+                        Fields =
+                        {
+                            "embedding",
+                        },
+                        Value = queryEmbeddings.ToArray(),
+                        KNearestNeighborsCount = 3
+                    }
+                    },
                 Size = searchCount,
                 Select = { "id"},
             };
@@ -106,8 +110,6 @@ namespace CosmosRecipeGuide
             }
             return ids; 
         }
-
-
 
         private SearchIndexClient CreateSearchIndexClient()
         {
@@ -126,7 +128,6 @@ namespace CosmosRecipeGuide
             SearchClient _searchClient = new SearchClient(new Uri(searchServiceEndPoint), indexName, new AzureKeyCredential(queryApiKey));
             return _searchClient;
         }
-
               
         private void DeleteIndexIfExists(string indexName, SearchIndexClient _indexClient)
         {
@@ -157,13 +158,18 @@ namespace CosmosRecipeGuide
                 VectorSearch = new()
                 {
                     AlgorithmConfigurations =
-                {
-                    new VectorSearchAlgorithmConfiguration(vectorSearchConfigName, "hnsw")
-                }
+                    {
+                        new HnswVectorSearchAlgorithmConfiguration(vectorSearchConfigName)
+                        {
+                            Parameters = new HnswParameters
+                            {
+                                Metric = VectorSearchAlgorithmMetric.Cosine
+                            }
+                        }
+                    }
                 },
                 SemanticSettings = new()
                 {
-
                     Configurations =
                     {
                        new SemanticConfiguration(_SemanticSearchConfigName, new()
@@ -175,23 +181,22 @@ namespace CosmosRecipeGuide
                            }
                        })
 
-                },
+                    },
                 },
                 Fields =
-            {
-                new SimpleField("id", SearchFieldDataType.String) { IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true },
-                new SearchableField("name") { IsFilterable = true, IsSortable = true },
-                new SearchableField("description") { IsFilterable = true },
-                new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
                 {
-                    IsSearchable = true,
-                    Dimensions = 1536,
-                    VectorSearchConfiguration = vectorSearchConfigName
+                    new SimpleField("id", SearchFieldDataType.String) { IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true },
+                    new SearchableField("name") { IsFilterable = true, IsSortable = true },
+                    new SearchableField("description") { IsFilterable = true },
+                    new SearchField("embedding", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                    {
+                        IsSearchable = true,
+                        VectorSearchDimensions = 1536,
+                        VectorSearchConfiguration = vectorSearchConfigName
+                    }
                 }
-            }
             };
             return searchIndex;
         }
-         
     }
 }

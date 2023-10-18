@@ -1,8 +1,6 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using Azure.Core;
-using Microsoft.Azure.Cosmos;
-using System.Text.RegularExpressions;
 
 namespace CosmosRecipeGuide.Services;
 
@@ -11,7 +9,6 @@ namespace CosmosRecipeGuide.Services;
 /// </summary>
 public class OpenAIService
 {
-
     private readonly string _openAIEmbeddingDeployment = string.Empty;
     private readonly string _openAICompletionDeployment=string.Empty; 
     private readonly int _openAIMaxTokens = default;
@@ -71,10 +68,7 @@ public class OpenAIService
     {
         try
         {
-            EmbeddingsOptions options = new EmbeddingsOptions(data)
-            {
-                Input = data
-            };
+            EmbeddingsOptions options = new EmbeddingsOptions(data);
 
             var response = await _openAIClient.GetEmbeddingsAsync(_openAIEmbeddingDeployment, options);
 
@@ -136,5 +130,4 @@ public class OpenAIService
 
         }
     }
-
 }

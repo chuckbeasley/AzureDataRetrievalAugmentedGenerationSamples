@@ -1,6 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
-using System.ComponentModel;
 using System.Diagnostics;
 using Container = Microsoft.Azure.Cosmos.Container;
 
@@ -47,7 +46,6 @@ public class CosmosDbService
         _container = container ??
             throw new ArgumentException("Unable to connect to existing Azure Cosmos DB container or database.");
     }
-
 
     /// <summary>
     /// Gets a list of all recipes where embeddings are null.
@@ -119,7 +117,6 @@ public class CosmosDbService
         }
     }
 
-
     private class BulkOperations<T>
     {
         public readonly List<Task<OperationResponse<T>>> Tasks;
@@ -144,7 +141,6 @@ public class CosmosDbService
             };
         }
     }
-    
 
     public class BulkOperationResponse<T>
     {
@@ -196,6 +192,4 @@ public class CosmosDbService
             };
         }
     }
-
-
 }
